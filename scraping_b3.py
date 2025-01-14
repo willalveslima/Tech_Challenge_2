@@ -1,31 +1,36 @@
-"""Script para dados do site da B3 com dados do pregão D-1."""
-from datetime import datetime, timedelta
-import os
-import requests
-import zipfile
+import time
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 
-# Calcula a data do dia -1
-data_d_1 = (datetime.now() - timedelta(days=2)).strftime('%Y-%m-%d')
+# Configurações do ChromeDriver
+chrome_options = Options()
+chrome_options.add_experimental_option('prefs', {
+    "download.default_directory": "C:\\Users\\walve\\Documents\\FIAP\\Fase 2 BigData\\Tech Challenge\\Tech_Challenge_2\\pregoes",  # Altere para o diretório desejado
+    "download.prompt_for_download": False,
+    "download.directory_upgrade": True,
+    "safebrowsing.enabled": True
+})
 
-# url_pegrões
-url = f'https://arquivos.b3.com.br/rapinegocios/tickercsv/{data_d_1}'
+# Inicializa o ChromeDriver
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+
+# Acessa a URL desejada
+url = "https://sistemaswebb3-listados.b3.com.br/indexPage/day/IBOV?language=pt-br"
+driver.get(url)
+
+# Aguarda o carregamento da página
+time.sleep(5)
 
 
-# Cria a pasta pregoes com a subpasta da data
-pasta = f'pregoes/{data_d_1}'
-os.makedirs(pasta, exist_ok=True)
+# Encontra e clica no botão de download (ajuste o seletor conforme necessário)
+download_button = driver.find_element(By.LINK_TEXT, 'Download')  # Ajuste o texto do link conforme necessário
+download_button.click()
 
-# Faz o download do arquivo
-response = requests.get(url)
-arquivo = os.path.join(pasta, 'ticker.zip')
+# Aguarda o download ser concluído
+time.sleep(10)
 
-# Salva o arquivo na pasta
-with open(arquivo, 'wb') as file:
-    file.write(response.content)
-
-    # Abre o arquivo zip e extrai o conteúdo
-    with zipfile.ZipFile(arquivo, 'r') as zip_ref:
-        zip_ref.extractall(pasta)
-
-# Deleta o arquivo .zip
-os.remove(arquivo)
+# Fecha o navegador
+driver.quit()
